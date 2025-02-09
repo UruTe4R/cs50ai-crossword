@@ -121,13 +121,14 @@ class CrosswordCreator():
         # if there is no overlap
         if ols == None:
             return revised
+        
         i, j = ols
         # set of possible words
         x_words = self.domains[x]
         y_words = self.domains[y]
         # if there is an overlap
+        unmatched_words = set()
         for x_word in x_words:
-            unmatched_words = set()
             # if no possible word for x in y remove x_word from domain
             if all(x_word[i] != y_word[j] for y_word in y_words):
                 unmatched_words.add(x_word)
@@ -171,7 +172,6 @@ class CrosswordCreator():
         crossword variable); return False otherwise.
         """
         
-        import pdb; pdb.set_trace()
         for var, values in self.domains.items():
             if len(values) == 0:
                 return False
