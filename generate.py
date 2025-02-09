@@ -191,7 +191,6 @@ class CrosswordCreator():
         if len(assignment) != 0:
             # check the length
             for var, value in assignment.items():
-                print("var", var, "value", value)
                 if var.length != len(value):
                     print("where")
                     return False
@@ -201,9 +200,11 @@ class CrosswordCreator():
                     continue
                 for neighbor in neighbors:
                     i, j = self.crossword.overlaps[var, neighbor]
-                    for neighbor_value in self.domains[neighbor]:
-                        if value[i] != neighbor_value[j]:
-                            print("here")
+                    if neighbor in assignment:
+                        if value[i] != assignment[neighbor][j]:
+                            return False
+                    else:
+                        if all(value[i] != neighbor_value[j] for neighbor_value in self.domains[neighbor]):
                             return False
         
         if len(assignment) > 2:
@@ -259,13 +260,13 @@ class CrosswordCreator():
                         else:
                             n_of_constraints[value] = 0
         
-        print("n_of_constraints", n_of_constraints)
-        if len(n_of_constraints) == len(unassigned[var]):
-            print("yes")
-            print(len(n_of_constraints), n_of_constraints, len(unassigned[var]), unassigned[var])
-        else:
-            print("no")
-            print(len(n_of_constraints), n_of_constraints, len(unassigned[var]), unassigned[var])
+        # print("n_of_constraints", n_of_constraints)
+        # if len(n_of_constraints) == len(unassigned[var]):
+        #     print("yes")
+        #     print(len(n_of_constraints), n_of_constraints, len(unassigned[var]), unassigned[var])
+        # else:
+        #     print("no")
+        #     print(len(n_of_constraints), n_of_constraints, len(unassigned[var]), unassigned[var])
         
         sorted_domain = sorted(list(unassigned[var]), key=lambda value: n_of_constraints[value])
         print("sorted_domain", sorted_domain)
@@ -286,7 +287,7 @@ class CrosswordCreator():
 
         sorted_unassigned = sorted(unassigned.items(), key=lambda item: len(item[1]))
         ordered_vars = [i[0] for i in sorted_unassigned]
-        print("ordered vars:", ordered_vars)
+        
         # check for degrees
         has_same_remaining_values = []
         for i in range(len(ordered_vars)):
