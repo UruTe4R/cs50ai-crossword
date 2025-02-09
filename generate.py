@@ -1,4 +1,5 @@
 import sys
+import copy
 
 from crossword import *
 
@@ -106,7 +107,6 @@ class CrosswordCreator():
                     unmatched_words.add(word)
             self.domains[var] = words - unmatched_words
         
-
     def revise(self, x, y):
         """
         Make variable `x` arc consistent with variable `y`.
@@ -137,10 +137,6 @@ class CrosswordCreator():
         
         return revised
 
-        
-
-
-
     def ac3(self, arcs=None):
         """
         Update `self.domains` such that each variable is arc consistent.
@@ -168,7 +164,6 @@ class CrosswordCreator():
 
         return True
 
-
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
@@ -192,7 +187,6 @@ class CrosswordCreator():
             # check the length
             for var, value in assignment.items():
                 if var.length != len(value):
-                    print("where")
                     return False
             # check the neighbors
                 neighbors = self.crossword.neighbors(var)
@@ -207,27 +201,15 @@ class CrosswordCreator():
                         if all(value[i] != neighbor_value[j] for neighbor_value in self.domains[neighbor]):
                             return False
         
-        if len(assignment) > 2:
-            # Check for distinctness
-            for key in assignment:
-                for key2 in assignment:
-                    if key == key2:
-                        continue
-                    if assignment[key] == assignment[key2]:
-                        print("there")
-                        return False
-            # for i, v1 in enumerate(assignment.values()):
-            #     if len(assignment) == i:
-            #         break
-            #     for v2 in list(assignment.values())[i + 1:]:
-            #         print("v1:", v1, "v2:", v2)
-            #         if v1 == v2:
-            #             return False
+        # Check for distinctness
+        for key in assignment:
+            for key2 in assignment:
+                if key == key2:
+                    continue
+                if assignment[key] == assignment[key2]:
+                    return False
         
         return True
-        
-        
-
 
     def order_domain_values(self, var, assignment):
         """
@@ -269,7 +251,6 @@ class CrosswordCreator():
         #     print(len(n_of_constraints), n_of_constraints, len(unassigned[var]), unassigned[var])
         
         sorted_domain = sorted(list(unassigned[var]), key=lambda value: n_of_constraints[value])
-        print("sorted_domain", sorted_domain)
         return sorted_domain
 
     def select_unassigned_variable(self, assignment):
@@ -299,7 +280,6 @@ class CrosswordCreator():
             
         return ordered_vars[0]
         
-
     def backtrack(self, assignment):
         """
         Using Backtracking Search, take as input a partial assignment for the
@@ -314,12 +294,18 @@ class CrosswordCreator():
         var = self.select_unassigned_variable(assignment)
         for value in self.order_domain_values(var, assignment):
             if self.consistent(assignment):
+                domains_copy = copy.deepcopy(self.domains)
                 assignment[var] = value
-                result = self.backtrack(assignment)
-                if result is not None:
-                    return result
+                if self.ac3():
+                    result = self.backtrack(assignment)
+                    if result is not None:
+                        return result
+                self.domains = domains_copy
                 assignment.pop(var)
         return None
+    
+    def inference(self, assignment):
+        ...
 
 
 def main():
