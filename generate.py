@@ -132,6 +132,7 @@ class CrosswordCreator():
             # if no possible word for x in y remove x_word from domain
             if all(x_word[i] != y_word[j] for y_word in y_words):
                 unmatched_words.add(x_word)
+                revised = True
         self.domains[x] = x_words - unmatched_words
         
         return revised
@@ -158,10 +159,12 @@ class CrosswordCreator():
         while len(arcs) != 0:
             x, y = arcs.pop(0)
             if self.revise(x, y):
-                if self.domains[x] == set():
+                if len(self.domains[x]) == 0:
                     return False
-                for neightbor in self.crossword.neighbors(x):
-                    arcs.append((neighbor, x))
+                else: 
+                    for neighbor in self.crossword.neighbors(x) - set([y]):
+                        if (neighbor, x) not in arcs:
+                            arcs.append((neighbor, x))
 
         return True
 
