@@ -188,32 +188,40 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        if len(assignment) == 0:
-            return False
-        print("assignment", assignment)
-        # check the length
-        for var, value in assignment.items():
-            print("var", var, "value", value)
-            if var.length != len(value):
-                return False
-        # check the neighbors
-            neighbors = self.crossword.neighbors(var)
-            if len(neighbors) == 0:
-                continue
-            for neighbor in neighbors:
-                i, j = self.crossword.overlaps[var, neighbor]
-                for neighbor_value in self.domains[neighbor]:
-                    if value[i] != neighbor_value[j]:
-                        return False
+        if len(assignment) != 0:
+            # check the length
+            for var, value in assignment.items():
+                print("var", var, "value", value)
+                if var.length != len(value):
+                    print("where")
+                    return False
+            # check the neighbors
+                neighbors = self.crossword.neighbors(var)
+                if len(neighbors) == 0:
+                    continue
+                for neighbor in neighbors:
+                    i, j = self.crossword.overlaps[var, neighbor]
+                    for neighbor_value in self.domains[neighbor]:
+                        if value[i] != neighbor_value[j]:
+                            print("here")
+                            return False
         
         if len(assignment) > 2:
             # Check for distinctness
-            for i, v1 in enumerate(assignment.values()):
-                if len(assignment) == i:
-                    break
-                for v2 in list(assignment.values())[i + 1:]:
-                    if v1 == v2:
+            for key in assignment:
+                for key2 in assignment:
+                    if key == key2:
+                        continue
+                    if assignment[key] == assignment[key2]:
+                        print("there")
                         return False
+            # for i, v1 in enumerate(assignment.values()):
+            #     if len(assignment) == i:
+            #         break
+            #     for v2 in list(assignment.values())[i + 1:]:
+            #         print("v1:", v1, "v2:", v2)
+            #         if v1 == v2:
+            #             return False
         
         return True
         
@@ -232,11 +240,12 @@ class CrosswordCreator():
             for v_a in assignment:
                 unassigned.pop(v_a)
         # Let's assume that var is not in assignment
-        n_of_constraints = {}# least n first, valur: number of constraints
+        n_of_constraints = {}# least n first, value: number of constraints
         for value in unassigned[var]:
             for neighbor in self.crossword.neighbors(var):# get var's neighbor
                 i, j = self.crossword.overlaps[var, neighbor]
-                if neighbor in assignment.keys():
+                if neighbor in assignment:
+                    n_of_constraints[value] = 0
                     continue
                 for neighbor_value in unassigned[neighbor]:
                     if value[i] != neighbor_value[j]:
@@ -244,12 +253,23 @@ class CrosswordCreator():
                             n_of_constraints[value] += 1
                         else:
                             n_of_constraints[value] = 1
+                    else:
+                        if value in n_of_constraints:
+                            n_of_constraints[value] += 0
+                        else:
+                            n_of_constraints[value] = 0
         
         print("n_of_constraints", n_of_constraints)
+        if len(n_of_constraints) == len(unassigned[var]):
+            print("yes")
+            print(len(n_of_constraints), n_of_constraints, len(unassigned[var]), unassigned[var])
+        else:
+            print("no")
+            print(len(n_of_constraints), n_of_constraints, len(unassigned[var]), unassigned[var])
         
-        sorted_domain = sorted(unassigned[var], key=lambda value: n_of_constraints[value])
+        sorted_domain = sorted(list(unassigned[var]), key=lambda value: n_of_constraints[value])
         print("sorted_domain", sorted_domain)
-        return list(sorted_domain)
+        return sorted_domain
 
     def select_unassigned_variable(self, assignment):
         """
@@ -263,8 +283,6 @@ class CrosswordCreator():
         for var in self.crossword.variables:
             if not var in assignment.keys():
                 unassigned[var] = self.domains[var]
-                
-        print("unassigned", unassigned)
 
         sorted_unassigned = sorted(unassigned.items(), key=lambda item: len(item[1]))
         ordered_vars = [i[0] for i in sorted_unassigned]
